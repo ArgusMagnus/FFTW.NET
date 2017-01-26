@@ -63,7 +63,7 @@ namespace FFTW.NET
 			else
 			{
 				var buffer = new Array<Complex>(input.GetSize());
-				using (var plan = FftwPlanC2C.Create(buffer, buffer, input.Rank, input.GetSize(), direction, plannerFlags, nThreads))
+				using (var plan = FftwPlanC2C.Create(buffer, buffer, direction, plannerFlags, nThreads))
 				{
 					input.CopyTo(buffer);
 					plan.Execute();
@@ -106,7 +106,7 @@ namespace FFTW.NET
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
 			var buffer = new Array<double>(input.GetSize());
-			using (var plan = FftwPlanRC.Create(buffer, output, input.Rank, input.GetSize(), DftDirection.Forwards, plannerFlags, nThreads))
+			using (var plan = FftwPlanRC.Create(buffer, output, DftDirection.Forwards, plannerFlags, nThreads))
 			{
 				input.CopyTo(buffer);
 				plan.Execute();
@@ -137,7 +137,7 @@ namespace FFTW.NET
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
 			var buffer = new Array<Complex>(input.GetSize());
-			using (var plan = FftwPlanRC.Create(output, buffer, input.Rank, input.GetSize(), DftDirection.Backwards, plannerFlags, nThreads))
+			using (var plan = FftwPlanRC.Create(output, buffer, DftDirection.Backwards, plannerFlags, nThreads))
 			{
 				input.CopyTo(buffer);
 				plan.Execute();

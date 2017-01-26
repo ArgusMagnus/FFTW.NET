@@ -29,6 +29,20 @@ namespace FFTW.NET
 	/// </summary>
 	public static class DFT
 	{
+		/// <summary>
+		/// Performs a complex-to-complex fast fourier transformation. The dimension is inferred from the input (<see cref="Array{T}.Rank"/>).
+		/// </summary>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-One_002dDimensional-DFTs.html#Complex-One_002dDimensional-DFTs"/>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-Multi_002dDimensional-DFTs.html#Complex-Multi_002dDimensional-DFTs"/>
+		public static void FFT(Array<Complex> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Forwards, plannerFlags, nThreads);
+
+		/// <summary>
+		/// Performs a complex-to-complex inverse fast fourier transformation. The dimension is inferred from the input (<see cref="Array{T}.Rank"/>).
+		/// </summary>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-One_002dDimensional-DFTs.html#Complex-One_002dDimensional-DFTs"/>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-Multi_002dDimensional-DFTs.html#Complex-Multi_002dDimensional-DFTs"/>
+		public static void IFFT(Array<Complex> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Backwards, plannerFlags, nThreads);
+
 		static void Transform(Array<Complex> input, Array<Complex> output, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
 		{
 			if ((plannerFlags & PlannerFlags.Estimate) == PlannerFlags.Estimate)
@@ -73,15 +87,10 @@ namespace FFTW.NET
 		}
 
 		/// <summary>
-		/// Performs a fast fourier transformation. The dimension is inferred from the input (<see cref="Array{T}.Rank"/>).
+		/// Performs a real-to-complex fast fourier transformation.
 		/// </summary>
-		public static void FFT(Array<Complex> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Forwards, plannerFlags, nThreads);
-
-		/// <summary>
-		/// Performs a inverse fast fourier transformation. The dimension is inferred from the input (<see cref="Array{T}.Rank"/>).
-		/// </summary>
-		public static void IFFT(Array<Complex> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Backwards, plannerFlags, nThreads);
-
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html#One_002dDimensional-DFTs-of-Real-Data"/>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data"/>
 		public static void FFT(Array<double> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
 		{
 			if ((plannerFlags & PlannerFlags.Estimate) == PlannerFlags.Estimate)
@@ -113,6 +122,11 @@ namespace FFTW.NET
 			}
 		}
 
+		/// <summary>
+		/// Performs a complex-to-real inverse fast fourier transformation.
+		/// </summary>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html#One_002dDimensional-DFTs-of-Real-Data"/>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data"/>
 		public static void IFFT(Array<Complex> input, Array<double> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
 		{
 			if ((plannerFlags & PlannerFlags.Estimate) == PlannerFlags.Estimate)
@@ -144,6 +158,11 @@ namespace FFTW.NET
 			}
 		}
 
+		/// <summary>
+		/// Gets the required size of the complex buffer in a complex-to-real
+		/// or rea-to-complex transormation from the size of the real buffer.
+		/// </summary>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data"/>
 		public static int[] GetComplexBufferSize(int[] realBufferSize)
 		{
 			int[] n = new int[realBufferSize.Length];
@@ -152,12 +171,36 @@ namespace FFTW.NET
 			return n;
 		}
 
+		/// <summary>
+		/// Provides access to FFTW's wisdom mechanism
+		/// </summary>
+		/// <seealso cref="http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-Plans.html#Words-of-Wisdom_002dSaving-Plans"/>
 		public static class Wisdom
 		{
-			public static bool Export(string filename) => FftwInterop.fftw_export_wisdom_to_filename(filename);
-			public static bool Import(string filename) => FftwInterop.fftw_import_wisdom_from_filename(filename);
-			public static void Clear() => FftwInterop.fftw_forget_wisdom();
+			/// <summary>
+			/// Exports the accumulated wisdom to a file.
+			/// </summary>
+			/// <seealso cref="http://www.fftw.org/fftw3_doc/Wisdom-Export.html#Wisdom-Export"/>
+			/// <seealso cref="http://www.fftw.org/fftw3_doc/Caveats-in-Using-Wisdom.html#Caveats-in-Using-Wisdom"/>
+			public static bool Export(string filename) { lock (FftwInterop.Lock) { return FftwInterop.fftw_export_wisdom_to_filename(filename); } }
 
+			/// <summary>
+			/// Imports wisdom from a file. The Current accumulated wisdom is replaced.
+			/// Wisdom is hardware specific, thus importing wisdom created with different hardware
+			/// can result in sub-optimal plans and should not be done.
+			/// <seealso cref="http://www.fftw.org/fftw3_doc/Wisdom-Import.html#Wisdom-Import"/>
+			/// <seealso cref="http://www.fftw.org/fftw3_doc/Caveats-in-Using-Wisdom.html#Caveats-in-Using-Wisdom"/>
+			public static bool Import(string filename) { lock (FftwInterop.Lock) { return FftwInterop.fftw_import_wisdom_from_filename(filename); } }
+
+			/// <summary>
+			/// Clears the current wisdom.
+			/// </summary>
+			/// <seealso cref="http://www.fftw.org/fftw3_doc/Forgetting-Wisdom.html#Forgetting-Wisdom"/>
+			public static void Clear() { lock (FftwInterop.Lock) { FftwInterop.fftw_forget_wisdom(); } }
+
+			/// <summary>
+			/// Gets or sets the current wisdom.
+			/// </summary>
 			public static string Current
 			{
 				get

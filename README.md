@@ -1,5 +1,6 @@
 # FFTW.NET
-.NET wrapper for FFTW
+.NET wrapper for FFTW which performs transformations directly on .NET arrays,
+thus avoiding copying memory from and to unmanaged memory.
 
 Download the FFTW binaries ("libfftw3-3.dll") from http://www.fftw.org/download.html,
 rename them to "libfftw3-3-x86.dll" and "libfftw3-3-x64.dll" and put them in your application directory.

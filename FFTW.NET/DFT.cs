@@ -166,15 +166,21 @@ namespace FFTW.NET
 					// because we have no way of releasing the returned memory.
 					StringBuilder sb = new StringBuilder();
 					FftwInterop.WriteCharHandler writeChar = (c, ptr) => sb.Append(Convert.ToChar(c));
-					FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
+					lock (FftwInterop.Lock)
+					{
+						FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
+					}
 					return sb.ToString();
 				}
 				set
 				{
-					if (string.IsNullOrEmpty(value))
-						FftwInterop.fftw_forget_wisdom();
-					else if (!FftwInterop.fftw_import_wisdom_from_string(value))
-						throw new FormatException();
+					lock (FftwInterop.Lock)
+					{
+						if (string.IsNullOrEmpty(value))
+							FftwInterop.fftw_forget_wisdom();
+						else if (!FftwInterop.fftw_import_wisdom_from_string(value))
+							throw new FormatException();
+					}
 				}
 			}
 		}

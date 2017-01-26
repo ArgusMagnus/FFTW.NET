@@ -84,7 +84,10 @@ namespace FFTW.NET
 		{
 			if (_plan != IntPtr.Zero)
 			{
-				FftwInterop.fftw_destroy_plan(_plan);
+				lock (FftwInterop.Lock)
+				{
+					FftwInterop.fftw_destroy_plan(_plan);
+				}
 				_plan = IntPtr.Zero;
 				_pinIn.Free();
 				_pinOut.Free();

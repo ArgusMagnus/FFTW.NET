@@ -33,6 +33,8 @@ namespace TestApp
 			Console.ReadKey();
 			Console.Clear();
 
+			ExampleUsePlanDirectly();
+
 			DFT.Wisdom.Export("wisdom.txt");
 			Console.WriteLine(DFT.Wisdom.Current);
 			Console.ReadKey();
@@ -90,6 +92,34 @@ namespace TestApp
 
 			for (int i = 0; i < output.Length; i++)
 				Console.WriteLine(output[i]);
+		}
+
+		static void ExampleUsePlanDirectly()
+		{
+			Complex[] timeDomain = new Complex[253];
+			Complex[] frequencyDomain = new Complex[timeDomain.Length];
+
+			// Use the same arrays for as many transformations as you like.
+			// If you can use the same arrays for your transformations, this is faster than calling DFT.FFT / DFT.IFFT
+			using (var fft = FftwPlanC2C.Create(new Array<Complex>(timeDomain), new Array<Complex>(frequencyDomain), DftDirection.Forwards))
+			using (var ifft = FftwPlanC2C.Create(new Array<Complex>(frequencyDomain), new Array<Complex>(timeDomain), DftDirection.Backwards))
+			{
+				// Set the input after the plan was created as the input may be overwritten
+				// during planning
+				for (int i = 0; i < timeDomain.Length; i++)
+					timeDomain[i] = i % 10;
+
+				// timeDomain -> frequencyDomain
+				fft.Execute();
+
+				for (int i = frequencyDomain.Length / 2; i < frequencyDomain.Length; i++)
+					frequencyDomain[i] = 0;
+
+				// frequencyDomain -> timeDomain
+				ifft.Execute();
+
+				// Do as many forwards and backwards transformations here as you like
+			}
 		}
 	}
 }

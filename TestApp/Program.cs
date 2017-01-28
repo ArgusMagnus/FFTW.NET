@@ -48,8 +48,12 @@ namespace TestApp
 			for (int i = 0; i < input.Length; i++)
 				input[i] = Math.Sin(i * 2 * Math.PI * 128 / input.Length);
 
-			DFT.FFT(new Array<Complex>(input), new Array<Complex>(output));
-			DFT.IFFT(new Array<Complex>(output), new Array<Complex>(output));
+			using (var pinIn = new PinnedArray<Complex>(input))
+			using (var pinOut = new PinnedArray<Complex>(output))
+			{
+				DFT.FFT(pinIn, pinOut);
+				DFT.IFFT(pinOut, pinOut);
+			}
 
 			for (int i = 0; i < input.Length; i++)
 				Console.WriteLine(output[i] / input[i]);
@@ -66,7 +70,11 @@ namespace TestApp
 					input[row, col] = (double)row * col/input.Length;
 			}
 
-			DFT.FFT(new Array<Complex>(input), new Array<Complex>(output));
+			using (var pinIn = new PinnedArray<Complex>(input))
+			using (var pinOut = new PinnedArray<Complex>(output))
+			{
+				DFT.FFT(pinIn, pinOut);
+			}
 
 			for (int row = 0; row < input.GetLength(0); row++)
 			{
@@ -79,30 +87,29 @@ namespace TestApp
 		static void ExampleR2C()
 		{
 			double[] input = new double[97];
-			Array<double> wInput = new Array<double>(input);
-			Array<Complex> wOutput = new Array<Complex>(DFT.GetComplexBufferSize(wInput.GetSize()));
-			Complex[] output = wOutput.Buffer as Complex[];
 
 			var rand = new Random();
 
 			for (int i = 0; i < input.Length; i++)
 				input[i] = rand.NextDouble();
 
-			DFT.FFT(wInput, wOutput);
-
-			for (int i = 0; i < output.Length; i++)
-				Console.WriteLine(output[i]);
+			using (var pinIn = new PinnedArray<double>(input))
+			using (var output = new FftwArrayComplex(DFT.GetComplexBufferSize(pinIn.GetSize())))
+			{
+				DFT.FFT(pinIn, output);
+				for (int i = 0; i < output.Length; i++)
+					Console.WriteLine(output[i]);
+			}
 		}
 
 		static void ExampleUsePlanDirectly()
 		{
-			Complex[] timeDomain = new Complex[253];
-			Complex[] frequencyDomain = new Complex[timeDomain.Length];
-
 			// Use the same arrays for as many transformations as you like.
 			// If you can use the same arrays for your transformations, this is faster than calling DFT.FFT / DFT.IFFT
-			using (var fft = FftwPlanC2C.Create(new Array<Complex>(timeDomain), new Array<Complex>(frequencyDomain), DftDirection.Forwards))
-			using (var ifft = FftwPlanC2C.Create(new Array<Complex>(frequencyDomain), new Array<Complex>(timeDomain), DftDirection.Backwards))
+			using (var timeDomain = new FftwArrayComplex(253))
+			using (var frequencyDomain = new FftwArrayComplex(timeDomain.GetSize()))
+			using (var fft = FftwPlanC2C.Create(timeDomain, frequencyDomain, DftDirection.Forwards))
+			using (var ifft = FftwPlanC2C.Create(frequencyDomain, timeDomain, DftDirection.Backwards))
 			{
 				// Set the input after the plan was created as the input may be overwritten
 				// during planning

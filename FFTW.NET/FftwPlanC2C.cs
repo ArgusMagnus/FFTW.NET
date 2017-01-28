@@ -23,10 +23,10 @@ namespace FFTW.NET
 {
 	public sealed class FftwPlanC2C : FftwPlan<Complex, Complex>
 	{
-		public Array<Complex> Input => Buffer1;
-		public Array<Complex> Output => Buffer2;
+		public IPinnedArray<Complex> Input => Buffer1;
+		public IPinnedArray<Complex> Output => Buffer2;
 
-		FftwPlanC2C(Array<Complex> input, Array<Complex> output, int rank, int[] n, bool verifyRankAndSize, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
+		FftwPlanC2C(IPinnedArray<Complex> input, IPinnedArray<Complex> output, int rank, int[] n, bool verifyRankAndSize, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
 			: base(input, output, rank, n, verifyRankAndSize, direction, plannerFlags, nThreads) { }
 
 		protected override IntPtr GetPlan(int rank, int[] n, IntPtr input, IntPtr output, DftDirection direction, PlannerFlags plannerFlags)
@@ -34,7 +34,7 @@ namespace FFTW.NET
 			return FftwInterop.fftw_plan_dft(rank, n, input, output, direction, plannerFlags);
 		}
 
-		protected override void VerifyRankAndSize(Array<Complex> input, Array<Complex> output)
+		protected override void VerifyRankAndSize(IPinnedArray<Complex> input, IPinnedArray<Complex> output)
 		{
 			if (input.Rank != output.Rank)
 				throw new ArgumentException($"{nameof(input)} and {nameof(output)} must have the same rank and size.");
@@ -45,7 +45,7 @@ namespace FFTW.NET
 			}
 		}
 
-		protected override void VerifyMinSize(Array<Complex> input, Array<Complex> output, int[] n)
+		protected override void VerifyMinSize(IPinnedArray<Complex> input, IPinnedArray<Complex> output, int[] n)
 		{
 			long size = 1;
 			foreach (var ni in n)
@@ -62,7 +62,7 @@ namespace FFTW.NET
 		/// Initializes a new plan using the provided input and output buffers.
 		/// These buffers may be overwritten during initialization.
 		/// </summary>
-		public static FftwPlanC2C Create(Array<Complex> input, Array<Complex> output, DftDirection direction, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
+		public static FftwPlanC2C Create(IPinnedArray<Complex> input, IPinnedArray<Complex> output, DftDirection direction, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
 		{
 			FftwPlanC2C plan = new FftwPlanC2C(input, output, input.Rank, input.GetSize(), true, direction, plannerFlags, nThreads);
 			if (plan.IsZero)
@@ -70,7 +70,7 @@ namespace FFTW.NET
 			return plan;
 		}
 
-		internal static FftwPlanC2C Create(Array<Complex> input, Array<Complex> output, int rank, int[] n, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
+		internal static FftwPlanC2C Create(IPinnedArray<Complex> input, IPinnedArray<Complex> output, int rank, int[] n, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
 		{
 			FftwPlanC2C plan = new FftwPlanC2C(input, output, rank, n, false, direction, plannerFlags, nThreads);
 			if (plan.IsZero)

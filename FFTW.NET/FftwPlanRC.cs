@@ -23,10 +23,10 @@ namespace FFTW.NET
 {
 	public sealed class FftwPlanRC : FftwPlan<double, Complex>
 	{
-		public Array<double> BufferReal => Buffer1;
-		public Array<Complex> BufferComplex => Buffer2;
+		public IPinnedArray<double> BufferReal => Buffer1;
+		public IPinnedArray<Complex> BufferComplex => Buffer2;
 
-		FftwPlanRC(Array<double> bufferReal, Array<Complex> bufferComplex, int rank, int[] n, bool verifyRankAndSize, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
+		FftwPlanRC(IPinnedArray<double> bufferReal, IPinnedArray<Complex> bufferComplex, int rank, int[] n, bool verifyRankAndSize, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
 			: base(bufferReal, bufferComplex, rank, n, verifyRankAndSize, direction, plannerFlags, nThreads) { }
 
 		protected override IntPtr GetPlan(int rank, int[] n, IntPtr bufferReal, IntPtr bufferComplex, DftDirection direction, PlannerFlags plannerFlags)
@@ -37,7 +37,7 @@ namespace FFTW.NET
 				return FftwInterop.fftw_plan_dft_c2r(rank, n, bufferComplex, bufferReal, plannerFlags);
 		}
 
-		protected override void VerifyRankAndSize(Array<double> bufferReal, Array<Complex> bufferComplex)
+		protected override void VerifyRankAndSize(IPinnedArray<double> bufferReal, IPinnedArray<Complex> bufferComplex)
 		{
 			if (bufferReal.Rank != bufferComplex.Rank)
 				throw new ArgumentException($"{nameof(bufferReal)} and {nameof(bufferComplex)} must have the same rank and size.");
@@ -50,7 +50,7 @@ namespace FFTW.NET
 				throw new ArgumentException($"Lenght of {nameof(bufferComplex)} must be equal to n[0]*...*(n[n.Length - 1] / 2 + 1) with n being the size of {nameof(bufferReal)}.");
 		}
 
-		protected override void VerifyMinSize(Array<double> bufferReal, Array<Complex> bufferComplex, int[] n)
+		protected override void VerifyMinSize(IPinnedArray<double> bufferReal, IPinnedArray<Complex> bufferComplex, int[] n)
 		{
 			long sizeReal = 1;
 			for (int i = 0; i < n.Length - 1; i++)
@@ -69,7 +69,7 @@ namespace FFTW.NET
 		/// Initializes a new plan using the provided input and output buffers.
 		/// These buffers may be overwritten during initialization.
 		/// </summary>
-		public static FftwPlanRC Create(Array<double> bufferReal, Array<Complex> bufferComplex, DftDirection direction,  PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
+		public static FftwPlanRC Create(IPinnedArray<double> bufferReal, IPinnedArray<Complex> bufferComplex, DftDirection direction,  PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
 		{
 			FftwPlanRC plan = new FftwPlanRC(bufferReal, bufferComplex, bufferReal.Rank, bufferReal.GetSize(), true, direction, plannerFlags, nThreads);
 			if (plan.IsZero)
@@ -77,7 +77,7 @@ namespace FFTW.NET
 			return plan;
 		}
 		
-		internal static FftwPlanRC Create(Array<double> bufferReal, Array<Complex> bufferComplex, int rank, int[] n, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
+		internal static FftwPlanRC Create(IPinnedArray<double> bufferReal, IPinnedArray<Complex> bufferComplex, int rank, int[] n, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
 		{
 			FftwPlanRC plan = new FftwPlanRC(bufferReal, bufferComplex, rank, n, false, direction, plannerFlags, nThreads);
 			if (plan.IsZero)

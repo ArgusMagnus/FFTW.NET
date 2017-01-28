@@ -36,7 +36,9 @@ string[] Imports = {
 	"bool;fftw_import_wisdom_from_filename([MarshalAs(UnmanagedType.LPStr)] string filename);[return: MarshalAs(UnmanagedType.Bool)]",
 	"bool;fftw_import_wisdom_from_string([MarshalAs(UnmanagedType.LPStr)] string wisdom);[return: MarshalAs(UnmanagedType.Bool)]",
 	"void;fftw_export_wisdom([MarshalAs(UnmanagedType.FunctionPtr)] WriteCharHandler writeChar, IntPtr data)",
-	"void;fftw_forget_wisdom()" };
+	"void;fftw_forget_wisdom()",
+	"IntPtr;fftw_malloc(IntPtr size)",
+	"void;fftw_free(IntPtr ptr)" };
 
 // --------------------------------------------------------- Code End ----------------------------------------------------- #>
 #region Copyright and License

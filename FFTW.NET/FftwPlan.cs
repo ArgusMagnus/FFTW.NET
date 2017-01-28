@@ -27,17 +27,15 @@ namespace FFTW.NET
 	{
 		IntPtr _plan = IntPtr.Zero;
 
-		readonly Array<T1> _buffer1;
-		readonly Array<T2> _buffer2;
-		readonly PinnedGCHandle _pinIn;
-		readonly PinnedGCHandle _pinOut;
+		readonly IPinnedArray<T1> _buffer1;
+		readonly IPinnedArray<T2> _buffer2;
 
-		protected Array<T1> Buffer1 => _buffer1;
-		protected Array<T2> Buffer2 => _buffer2;
+		protected IPinnedArray<T1> Buffer1 => _buffer1;
+		protected IPinnedArray<T2> Buffer2 => _buffer2;
 
 		internal protected bool IsZero => _plan == IntPtr.Zero;
 
-		internal protected FftwPlan(Array<T1> buffer1, Array<T2> buffer2, int rank, int[] n, bool verifyRankAndSize, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
+		internal protected FftwPlan(IPinnedArray<T1> buffer1, IPinnedArray<T2> buffer2, int rank, int[] n, bool verifyRankAndSize, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
 		{
 			if (!FftwInterop.IsAvailable)
 				throw new InvalidOperationException($"{nameof(FftwInterop.IsAvailable)} returns false.");
@@ -52,26 +50,18 @@ namespace FFTW.NET
 
 			_buffer1 = buffer1;
 			_buffer2 = buffer2;
-			_pinIn = PinnedGCHandle.Pin(buffer1.Buffer);
-			_pinOut = PinnedGCHandle.Pin(buffer2.Buffer);
 			_plan = IntPtr.Zero;
 
 			lock (FftwInterop.Lock)
 			{
 				FftwInterop.fftw_plan_with_nthreads(nThreads);
-				_plan = GetPlan(rank, n, _pinIn.Pointer, _pinOut.Pointer, direction, plannerFlags);
-			}
-
-			if (_plan == IntPtr.Zero)
-			{
-				_pinIn.Free();
-				_pinOut.Free();
+				_plan = GetPlan(rank, n, _buffer1.Pointer, _buffer2.Pointer, direction, plannerFlags);
 			}
 		}
 
 		protected abstract IntPtr GetPlan(int rank, int[] n, IntPtr input, IntPtr output, DftDirection direction, PlannerFlags plannerFlags);
-		protected abstract void VerifyRankAndSize(Array<T1> input, Array<T2> output);
-		protected abstract void VerifyMinSize(Array<T1> ipput, Array<T2> output, int[] n);
+		protected abstract void VerifyRankAndSize(IPinnedArray<T1> input, IPinnedArray<T2> output);
+		protected abstract void VerifyMinSize(IPinnedArray<T1> ipput, IPinnedArray<T2> output, int[] n);
 
 
 		public void Execute()
@@ -84,15 +74,14 @@ namespace FFTW.NET
 
 		public void Dispose()
 		{
-			if (_plan != IntPtr.Zero)
+			if (_plan == IntPtr.Zero)
+				return;
+			lock (FftwInterop.Lock)
 			{
-				lock (FftwInterop.Lock)
-				{
-					FftwInterop.fftw_destroy_plan(_plan);
-				}
+				if (_plan == IntPtr.Zero)
+					return;
+				FftwInterop.fftw_destroy_plan(_plan);
 				_plan = IntPtr.Zero;
-				_pinIn.Free();
-				_pinOut.Free();
 			}
 		}
 	}

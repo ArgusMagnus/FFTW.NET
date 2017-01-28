@@ -42,7 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Array.cs" />
+    <Compile Include="FftwArray.cs" />
+    <Compile Include="PinnedArray.cs" />
     <Compile Include="BufferPool.cs" />
     <Compile Include="DFT.cs" />
     <Compile Include="FftwInterop.cs" />
@@ -54,6 +55,7 @@
     <Compile Include="FftwPlan.cs" />
     <Compile Include="FftwPlanC2C.cs" />
     <Compile Include="FftwPlanRC.cs" />
+    <Compile Include="IPinnedArray.cs" />
     <Compile Include="PinnedGCHandle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

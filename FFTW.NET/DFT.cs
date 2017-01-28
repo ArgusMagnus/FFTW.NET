@@ -35,7 +35,8 @@ namespace FFTW.NET
 		/// </summary>
 		const int LohThreshold = 85000;
 
-		static readonly BufferPool<Complex> _bufferPoolComplex = new BufferPool<Complex>(Environment.Is64BitProcess ? LohThreshold / Marshal.SizeOf<Complex>() : 500);
+		// For 32-bit processes, double arrays with a size of at least 1000 are allocated on the LOH 
+		static readonly BufferPool<Complex> _bufferPoolComplex = new BufferPool<Complex>(Environment.Is64BitProcess ? LohThreshold / Marshal.SizeOf<Complex>() : 1000 / 2);
 		static readonly BufferPool<double> _bufferPoolDouble = new BufferPool<double>(Environment.Is64BitProcess ? LohThreshold / sizeof(double) : 1000);
 
 		/// <summary>
@@ -43,16 +44,16 @@ namespace FFTW.NET
 		/// </summary>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-One_002dDimensional-DFTs.html#Complex-One_002dDimensional-DFTs"/>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-Multi_002dDimensional-DFTs.html#Complex-Multi_002dDimensional-DFTs"/>
-		public static void FFT(Array<Complex> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Forwards, plannerFlags, nThreads);
+		public static void FFT(IPinnedArray<Complex> input, IPinnedArray<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Forwards, plannerFlags, nThreads);
 
 		/// <summary>
 		/// Performs a complex-to-complex inverse fast fourier transformation. The dimension is inferred from the input (<see cref="Array{T}.Rank"/>).
 		/// </summary>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-One_002dDimensional-DFTs.html#Complex-One_002dDimensional-DFTs"/>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/Complex-Multi_002dDimensional-DFTs.html#Complex-Multi_002dDimensional-DFTs"/>
-		public static void IFFT(Array<Complex> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Backwards, plannerFlags, nThreads);
+		public static void IFFT(IPinnedArray<Complex> input, IPinnedArray<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1) => Transform(input, output, DftDirection.Backwards, plannerFlags, nThreads);
 
-		static void Transform(Array<Complex> input, Array<Complex> output, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
+		static void Transform(IPinnedArray<Complex> input, IPinnedArray<Complex> output, DftDirection direction, PlannerFlags plannerFlags, int nThreads)
 		{
 			if ((plannerFlags & PlannerFlags.Estimate) == PlannerFlags.Estimate)
 			{
@@ -85,8 +86,9 @@ namespace FFTW.NET
 			}
 			else
 			{
-				using (var buffer = _bufferPoolComplex.RequestBuffer(input.LongLength))
-				using (var plan = FftwPlanC2C.Create(new Array<Complex>(buffer.Buffer), new Array<Complex>(buffer.Buffer), input.Rank, input.GetSize(), direction, plannerFlags, nThreads))
+				using (var bufferContainer = _bufferPoolComplex.RequestBuffer(input.LongLength))
+				using (var buffer = new PinnedArray<Complex>(bufferContainer.Buffer))
+				using (var plan = FftwPlanC2C.Create(buffer, buffer, input.Rank, input.GetSize(), direction, plannerFlags, nThreads))
 				{
 					input.CopyTo(plan.Input);
 					plan.Execute();
@@ -100,7 +102,7 @@ namespace FFTW.NET
 		/// </summary>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html#One_002dDimensional-DFTs-of-Real-Data"/>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data"/>
-		public static void FFT(Array<double> input, Array<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
+		public static void FFT(IPinnedArray<double> input, IPinnedArray<Complex> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
 		{
 			if ((plannerFlags & PlannerFlags.Estimate) == PlannerFlags.Estimate)
 			{
@@ -123,8 +125,9 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			using (var buffer = _bufferPoolDouble.RequestBuffer(input.LongLength))
-			using (var plan = FftwPlanRC.Create(new Array<double>(buffer.Buffer), output, DftDirection.Forwards, plannerFlags, nThreads))
+			using (var bufferContainer = _bufferPoolDouble.RequestBuffer(input.LongLength))
+			using (var buffer = new PinnedArray<double>(bufferContainer.Buffer))
+			using (var plan = FftwPlanRC.Create(buffer, output, DftDirection.Forwards, plannerFlags, nThreads))
 			{
 				input.CopyTo(plan.BufferReal);
 				plan.Execute();
@@ -136,7 +139,7 @@ namespace FFTW.NET
 		/// </summary>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/One_002dDimensional-DFTs-of-Real-Data.html#One_002dDimensional-DFTs-of-Real-Data"/>
 		/// <seealso cref="http://www.fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data"/>
-		public static void IFFT(Array<Complex> input, Array<double> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
+		public static void IFFT(IPinnedArray<Complex> input, IPinnedArray<double> output, PlannerFlags plannerFlags = PlannerFlags.Default, int nThreads = 1)
 		{
 			if ((plannerFlags & PlannerFlags.Estimate) == PlannerFlags.Estimate)
 			{
@@ -159,8 +162,9 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			using (var buffer = _bufferPoolComplex.RequestBuffer(input.LongLength))
-			using (var plan = FftwPlanRC.Create(output, new Array<Complex>(buffer.Buffer), DftDirection.Backwards, plannerFlags, nThreads))
+			using (var bufferContainer = _bufferPoolComplex.RequestBuffer(input.LongLength))
+			using (var buffer = new PinnedArray<Complex>(bufferContainer.Buffer))
+			using (var plan = FftwPlanRC.Create(output, buffer, DftDirection.Backwards, plannerFlags, nThreads))
 			{
 				input.CopyTo(plan.BufferComplex);
 				plan.Execute();

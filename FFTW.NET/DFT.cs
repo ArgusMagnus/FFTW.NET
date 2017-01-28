@@ -19,6 +19,7 @@ GNU General Public License for more details.
 using System;
 using System.Text;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace FFTW.NET
 {
@@ -29,6 +30,14 @@ namespace FFTW.NET
 	/// </summary>
 	public static class DFT
 	{
+		/// <summary>
+		/// Large object heap threshold in bytes
+		/// </summary>
+		const int LohThreshold = 85000;
+
+		static readonly BufferPool<Complex> _bufferPoolComplex = new BufferPool<Complex>(Environment.Is64BitProcess ? LohThreshold / Marshal.SizeOf<Complex>() : 500);
+		static readonly BufferPool<double> _bufferPoolDouble = new BufferPool<double>(Environment.Is64BitProcess ? LohThreshold / sizeof(double) : 1000);
+
 		/// <summary>
 		/// Performs a complex-to-complex fast fourier transformation. The dimension is inferred from the input (<see cref="Array{T}.Rank"/>).
 		/// </summary>
@@ -76,12 +85,12 @@ namespace FFTW.NET
 			}
 			else
 			{
-				var buffer = new Array<Complex>(input.GetSize());
-				using (var plan = FftwPlanC2C.Create(buffer, buffer, direction, plannerFlags, nThreads))
+				using (var buffer = _bufferPoolComplex.RequestBuffer(input.LongLength))
+				using (var plan = FftwPlanC2C.Create(new Array<Complex>(buffer.Buffer), new Array<Complex>(buffer.Buffer), input.Rank, input.GetSize(), direction, plannerFlags, nThreads))
 				{
-					input.CopyTo(buffer);
+					input.CopyTo(plan.Input);
 					plan.Execute();
-					buffer.CopyTo(output, 0, 0, input.LongLength);
+					plan.Output.CopyTo(output, 0, 0, input.LongLength);
 				}
 			}
 		}
@@ -114,10 +123,10 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			var buffer = new Array<double>(input.GetSize());
-			using (var plan = FftwPlanRC.Create(buffer, output, DftDirection.Forwards, plannerFlags, nThreads))
+			using (var buffer = _bufferPoolDouble.RequestBuffer(input.LongLength))
+			using (var plan = FftwPlanRC.Create(new Array<double>(buffer.Buffer), output, DftDirection.Forwards, plannerFlags, nThreads))
 			{
-				input.CopyTo(buffer);
+				input.CopyTo(plan.BufferReal);
 				plan.Execute();
 			}
 		}
@@ -150,10 +159,10 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			var buffer = new Array<Complex>(input.GetSize());
-			using (var plan = FftwPlanRC.Create(output, buffer, DftDirection.Backwards, plannerFlags, nThreads))
+			using (var buffer = _bufferPoolComplex.RequestBuffer(input.LongLength))
+			using (var plan = FftwPlanRC.Create(output, new Array<Complex>(buffer.Buffer), DftDirection.Backwards, plannerFlags, nThreads))
 			{
-				input.CopyTo(buffer);
+				input.CopyTo(plan.BufferComplex);
 				plan.Execute();
 			}
 		}

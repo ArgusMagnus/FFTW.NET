@@ -50,6 +50,8 @@ namespace FFTW.NET
 			if (nThreads < 1)
 				nThreads = Environment.ProcessorCount;
 
+			_buffer1 = buffer1;
+			_buffer2 = buffer2;
 			_pinIn = PinnedGCHandle.Pin(buffer1.Buffer);
 			_pinOut = PinnedGCHandle.Pin(buffer2.Buffer);
 			_plan = IntPtr.Zero;

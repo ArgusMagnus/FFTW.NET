@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Array.cs" />
+    <Compile Include="BufferPool.cs" />
     <Compile Include="DFT.cs" />
     <Compile Include="FftwInterop.cs" />
     <Compile Include="FftwInterop.g.cs">

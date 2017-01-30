@@ -35,9 +35,12 @@ namespace FFTW.NET
 		/// </summary>
 		const int LohThreshold = 85000;
 
-		// For 32-bit processes, double arrays with a size of at least 1000 are allocated on the LOH 
-		static readonly BufferPool<Complex> _bufferPoolComplex = new BufferPool<Complex>(Environment.Is64BitProcess ? LohThreshold / Marshal.SizeOf<Complex>() : 1000 / 2);
-		static readonly BufferPool<double> _bufferPoolDouble = new BufferPool<double>(Environment.Is64BitProcess ? LohThreshold / sizeof(double) : 1000);
+		/// <summary>
+		/// Memory alignment in bytes
+		/// </summary>
+		const int MemoryAlignment = 16;
+
+		static readonly BufferPool<byte> _bufferPool = new BufferPool<byte>(LohThreshold);
 
 		/// <summary>
 		/// Performs a complex-to-complex fast fourier transformation. The dimension is inferred from the input (<see cref="Array{T}.Rank"/>).
@@ -86,8 +89,8 @@ namespace FFTW.NET
 			}
 			else
 			{
-				using (var bufferContainer = _bufferPoolComplex.RequestBuffer(input.LongLength))
-				using (var buffer = new PinnedArray<Complex>(bufferContainer.Buffer))
+				using (var bufferContainer = _bufferPool.RequestBuffer(input.LongLength*Marshal.SizeOf<Complex>()+MemoryAlignment))
+				using (var buffer = new AlignedArrayComplex(bufferContainer.Buffer, MemoryAlignment, input.GetSize()))
 				using (var plan = FftwPlanC2C.Create(buffer, buffer, input.Rank, input.GetSize(), direction, plannerFlags, nThreads))
 				{
 					input.CopyTo(plan.Input);
@@ -125,8 +128,8 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			using (var bufferContainer = _bufferPoolDouble.RequestBuffer(input.LongLength))
-			using (var buffer = new PinnedArray<double>(bufferContainer.Buffer))
+			using (var bufferContainer = _bufferPool.RequestBuffer(input.LongLength * sizeof(double) + MemoryAlignment))
+			using (var buffer = new AlignedArrayDouble(bufferContainer.Buffer, MemoryAlignment, input.GetSize()))
 			using (var plan = FftwPlanRC.Create(buffer, output, DftDirection.Forwards, plannerFlags, nThreads))
 			{
 				input.CopyTo(plan.BufferReal);
@@ -162,8 +165,8 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			using (var bufferContainer = _bufferPoolComplex.RequestBuffer(input.LongLength))
-			using (var buffer = new PinnedArray<Complex>(bufferContainer.Buffer))
+			using (var bufferContainer = _bufferPool.RequestBuffer(input.LongLength * Marshal.SizeOf<Complex>() + MemoryAlignment))
+			using (var buffer = new AlignedArrayComplex(bufferContainer.Buffer, MemoryAlignment, input.GetSize()))
 			using (var plan = FftwPlanRC.Create(output, buffer, DftDirection.Backwards, plannerFlags, nThreads))
 			{
 				input.CopyTo(plan.BufferComplex);

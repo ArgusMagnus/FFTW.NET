@@ -40,6 +40,11 @@ namespace FFTW.NET
 			if (!FftwInterop.IsAvailable)
 				throw new InvalidOperationException($"{nameof(FftwInterop.IsAvailable)} returns false.");
 
+			if (buffer1.IsDisposed)
+				throw new ObjectDisposedException(nameof(buffer1));
+			if (buffer2.IsDisposed)
+				throw new ObjectDisposedException(nameof(buffer2));
+
 			if (verifyRankAndSize)
 				VerifyRankAndSize(buffer1, buffer2);
 			else

@@ -61,26 +61,24 @@ namespace TestApp
 
 		static void Example2D()
 		{
-			Complex[,] input = new Complex[64,16];
-			Complex[,] output = new Complex[input.GetLength(0), input.GetLength(1)];
-
-			for (int row = 0; row < input.GetLength(0); row++)
+			using (var input = new AlignedArrayComplex(16, 64, 16))
+			using (var output = new AlignedArrayComplex(16, input.GetSize()))
 			{
-				for (int col = 0; col < input.GetLength(1); col++)
-					input[row, col] = (double)row * col/input.Length;
-			}
+				for (int row = 0; row < input.GetLength(0); row++)
+				{
+					for (int col = 0; col < input.GetLength(1); col++)
+						input[row, col] = (double)row * col / input.Length;
+				}
 
-			using (var pinIn = new PinnedArray<Complex>(input))
-			using (var pinOut = new PinnedArray<Complex>(output))
-			{
-				DFT.FFT(pinIn, pinOut);
-			}
+				DFT.FFT(input, output);
+				DFT.IFFT(output, output);
 
-			for (int row = 0; row < input.GetLength(0); row++)
-			{
-				for (int col = 0; col < input.GetLength(1); col++)
-					Console.Write((output[row, col].Real/Math.Sqrt(input.Length)).ToString("F2").PadLeft(6));
-				Console.WriteLine();
+				for (int row = 0; row < input.GetLength(0); row++)
+				{
+					for (int col = 0; col < input.GetLength(1); col++)
+						Console.Write((output[row, col].Real / input[row,col].Real/input.Length).ToString("F2").PadLeft(6));
+					Console.WriteLine();
+				}
 			}
 		}
 

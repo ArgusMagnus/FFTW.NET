@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlignedArray.cs" />
     <Compile Include="FftwArray.cs" />
     <Compile Include="PinnedArray.cs" />
     <Compile Include="BufferPool.cs" />

@@ -32,13 +32,14 @@ namespace FFTW.NET
 		where T : struct
 	{
 		readonly System.Array _buffer;
-		PinnedGCHandle _pin;
+		readonly PinnedGCHandle _pin;
 
 		public int Rank => _buffer.Rank;
 		public Array Buffer => _buffer;
 		public int Length => _buffer.Length;
 		public long LongLength => _buffer.LongLength;
 		public IntPtr Pointer => _pin.Pointer;
+		public bool IsDisposed => !_pin.IsAllocated;
 
 		public PinnedArray(params int[] lengths)
 		: this(Array.CreateInstance(typeof(T), lengths)) { }

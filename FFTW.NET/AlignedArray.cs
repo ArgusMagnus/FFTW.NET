@@ -8,59 +8,61 @@ using System.Numerics;
 
 namespace FFTW.NET
 {
-	public class FftwArray<T> : IPinnedArray<T>
+	public class AlignedArray<T> : IPinnedArray<T>
 		where T : struct
 	{
+		readonly byte[] _buffer;
+		readonly PinnedGCHandle _pin;
+		readonly int _alignment;
+		readonly IntPtr _alignedPtr;
+		readonly long _length;
 		readonly int[] _lengths;
-		IntPtr _ptr;
 
-		public FftwArray(params int[] lengths)
-		{
-			_lengths = lengths;
-			long size = LongLength * Marshal.SizeOf<T>();
-			_ptr = FftwInterop.fftw_malloc(new IntPtr(size));
-			GC.AddMemoryPressure(size);
-		}
-
-		public int Length
-		{
-			get
-			{
-				checked
-				{
-					int value = 1;
-					foreach (var n in _lengths)
-						value *= n;
-					return value;
-				}
-			}
-		}
-
-		public long LongLength
-		{
-			get
-			{
-				long value = 1;
-				foreach (var n in _lengths)
-					value *= n;
-				return value;
-			}
-		}
-
-		public IntPtr Pointer => _ptr;
-
+		public long LongLength => _length;
+		public int Length => checked((int)_length);
+		public bool IsDisposed => !_pin.IsAllocated;
 		public int Rank => _lengths.Length;
 
-		public bool IsDisposed => _ptr == IntPtr.Zero;
+		public IntPtr Pointer => _alignedPtr;
 
-		public void Dispose()
+		public AlignedArray(byte[] buffer, int alignment, params int[] lengths)
 		{
-			if (_ptr == IntPtr.Zero)
-				return;
-			FftwInterop.fftw_free(_ptr);
-			_ptr = IntPtr.Zero;
-			GC.RemoveMemoryPressure(LongLength * Marshal.SizeOf<T>());
+			_buffer = buffer;
+			_alignment = alignment;
+			_length = 1;
+			foreach (var n in lengths)
+				_length *= n;
+			_lengths = lengths;
+
+			if (_length > buffer.LongLength / Marshal.SizeOf<T>())
+				throw new ArgumentException($"Buffer is to small to hold array of size {nameof(lengths)}", nameof(buffer));
+
+			_pin = PinnedGCHandle.Pin(buffer);
+
+			long value = _pin.Pointer.ToInt64();
+			long offset = alignment - (value % alignment);
+			_alignedPtr = new IntPtr(value + offset);
+			long maxLength = (_buffer.LongLength - offset) / Marshal.SizeOf<T>();
+
+			if (_length > maxLength)
+			{
+				_pin.Free();
+				throw new ArgumentException($"Buffer is to small to hold array of size {nameof(lengths)}", nameof(buffer));
+			}
 		}
+
+		public AlignedArray(int alignment, params int[] lengths)
+		: this(GetBuffer(alignment, lengths), alignment, lengths) { }
+
+		static byte[] GetBuffer(int alignment, int[] lengths)
+		{
+			long length = Marshal.SizeOf<T>();
+			foreach (var n in lengths)
+				length *= n;
+			return new byte[length + alignment];
+		}
+
+		public void Dispose() => _pin.Free();
 
 		public int GetLength(int dimension) => _lengths[dimension];
 
@@ -82,7 +84,7 @@ namespace FFTW.NET
 
 		void VerifyNotDisposed()
 		{
-			if (_ptr == IntPtr.Zero)
+			if (!_pin.IsAllocated)
 				throw new ObjectDisposedException(this.GetType().FullName);
 		}
 
@@ -159,19 +161,25 @@ namespace FFTW.NET
 		}
 	}
 
-	public class FftwArrayComplex : FftwArray<Complex>
+	public class AlignedArrayComplex : AlignedArray<Complex>
 	{
-		public FftwArrayComplex(params int[] lengths)
-			: base(lengths) { }
+		public AlignedArrayComplex(byte[] buffer, int alignment, params int[] lengths)
+			: base(buffer, alignment, lengths) { }
+
+		public AlignedArrayComplex(int alignment, params int[] lengths)
+			: base(alignment, lengths) { }
 
 		protected unsafe override Complex GetCore(IntPtr ptr) => *((Complex*)ptr.ToPointer());
 		protected unsafe override void SetCore(Complex value, IntPtr ptr) => *((Complex*)ptr.ToPointer()) = value;
 	}
 
-	public class FftwArrayDouble : FftwArray<double>
+	public class AlignedArrayDouble : AlignedArray<double>
 	{
-		public FftwArrayDouble(params int[] lengths)
-			: base(lengths) { }
+		public AlignedArrayDouble(byte[] buffer, int alignment, params int[] lengths)
+			: base(buffer, alignment, lengths) { }
+
+		public AlignedArrayDouble(int alignment, params int[] lengths)
+			: base(alignment, lengths) { }
 
 		protected unsafe override double GetCore(IntPtr ptr) => *((double*)ptr.ToPointer());
 		protected unsafe override void SetCore(double value, IntPtr ptr) => *((double*)ptr.ToPointer()) = value;

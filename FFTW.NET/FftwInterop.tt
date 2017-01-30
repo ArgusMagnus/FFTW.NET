@@ -38,7 +38,8 @@ string[] Imports = {
 	"void;fftw_export_wisdom([MarshalAs(UnmanagedType.FunctionPtr)] WriteCharHandler writeChar, IntPtr data)",
 	"void;fftw_forget_wisdom()",
 	"IntPtr;fftw_malloc(IntPtr size)",
-	"void;fftw_free(IntPtr ptr)" };
+	"void;fftw_free(IntPtr ptr)",
+	"int;fftw_alignment_of(IntPtr ptr)" };
 
 // --------------------------------------------------------- Code End ----------------------------------------------------- #>
 #region Copyright and License

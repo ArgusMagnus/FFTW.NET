@@ -14,6 +14,7 @@ namespace FFTW.NET
 		int Length { get; }
 		long LongLength { get; }
 		IntPtr Pointer { get; }
+		bool IsDisposed { get; }
 
 		int GetLength(int dimension);
 		int[] GetSize();

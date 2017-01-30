@@ -8,3 +8,4 @@
 */.vs/
 .vs/
 *.dll
+/Nuget Package

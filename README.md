@@ -1,3 +1,4 @@
+
 # FFTW.NET
 .NET wrapper for FFTW (http://www.fftw.org/)
 
@@ -26,5 +27,6 @@ There are three array classes which you can use to perform transformations:
   be aligned on a 16 bytes boundary and thus FFTW cannot use SIMD.
 * FftwArray<T>: This class allocates unmanaged memory using fftw_malloc.
   This class was somewhat rendered obsolete by the introduction of AlignedArray<T>.
+
 If none of these fits your needs, you can always create your own by
 implementing the IPinnedArray<T> interface.

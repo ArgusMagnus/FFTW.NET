@@ -219,18 +219,7 @@ namespace FFTW.NET
 			/// </summary>
 			public static string Current
 			{
-				get
-				{
-					// We cannot use the fftw_export_wisdom_to_string function here
-					// because we have no way of releasing the returned memory.
-					StringBuilder sb = new StringBuilder();
-					FftwInterop.WriteCharHandler writeChar = (c, ptr) => sb.Append(Convert.ToChar(c));
-					lock (FftwInterop.Lock)
-					{
-						FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
-					}
-					return sb.ToString();
-				}
+				get { lock (FftwInterop.Lock) { return FftwInterop.fftw_export_wisdom_to_string(); } }
 				set
 				{
 					lock (FftwInterop.Lock)

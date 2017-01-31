@@ -17,6 +17,7 @@ GNU General Public License for more details.
 #endregion
 
 using System;
+using System.Text;
 
 namespace FFTW.NET
 {
@@ -80,22 +81,45 @@ namespace FFTW.NET
 
 	public static partial class FftwInterop
 	{
-		static readonly bool _isAvailable = false;
-		static readonly object _lock = new object();
+		static readonly Version _version = GetVersionAndInitialize();
 
-		public static bool IsAvailable => _isAvailable;
-		internal static object Lock => _lock;
+		public static Version Version => _version;
+
+		public static bool IsAvailable => _version != null;
+
+		internal static object Lock
+		{
+			get
+			{
+				if (!IsAvailable)
+					throw new InvalidOperationException($"{nameof(FftwInterop.IsAvailable)} is false.");
+				return _version;
+			}
+		}
 
 		public delegate void WriteCharHandler(byte c, IntPtr ptr);
 
-		static FftwInterop()
+		static Version GetVersionAndInitialize()
 		{
-			try
-			{
-				fftw_init_threads();
-				_isAvailable = true;
-			}
-			catch (DllNotFoundException) { _isAvailable = false; }
+			try { fftw_init_threads(); }
+			catch (DllNotFoundException) { return null; }
+
+			const string VersionPrefix = "fftw-";
+			string wisdom = fftw_export_wisdom_to_string();
+			int start = wisdom.IndexOf(VersionPrefix) + VersionPrefix.Length;
+			int end = wisdom.IndexOf(' ', start);
+			string versionStr = wisdom.Substring(start, end - start);
+			return new Version(versionStr);
+		}
+
+		public static string fftw_export_wisdom_to_string()
+		{
+			// We cannot use the fftw_export_wisdom_to_string function here
+			// because we have no way of releasing the returned memory.
+			StringBuilder sb = new StringBuilder();
+			FftwInterop.WriteCharHandler writeChar = (c, ptr) => sb.Append(Convert.ToChar(c));
+			FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
+			return sb.ToString();
 		}
 	}
 }

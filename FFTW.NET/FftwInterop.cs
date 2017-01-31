@@ -104,12 +104,8 @@ namespace FFTW.NET
 			try { fftw_init_threads(); }
 			catch (DllNotFoundException) { return null; }
 
-			const string VersionPrefix = "fftw-";
-			string wisdom = fftw_export_wisdom_to_string();
-			int start = wisdom.IndexOf(VersionPrefix) + VersionPrefix.Length;
-			int end = wisdom.IndexOf(' ', start);
-			string versionStr = wisdom.Substring(start, end - start);
-			return new Version(versionStr);
+			string version = GetVersion();
+			return new Version(version);
 		}
 
 		public static string fftw_export_wisdom_to_string()
@@ -118,6 +114,34 @@ namespace FFTW.NET
 			// because we have no way of releasing the returned memory.
 			StringBuilder sb = new StringBuilder();
 			FftwInterop.WriteCharHandler writeChar = (c, ptr) => sb.Append(Convert.ToChar(c));
+			FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
+			return sb.ToString();
+		}
+
+		static string GetVersion()
+		{
+			const string VersionPrefix = "fftw-";
+			const byte WhiteSpace = (byte)' ';
+			byte[] prefix = Encoding.UTF8.GetBytes(VersionPrefix);
+			int i = 0;
+			StringBuilder sb = new StringBuilder();
+			FftwInterop.WriteCharHandler writeChar = (c, ptr) =>
+				{
+					if (i < 0)
+						return;
+
+					if (i == VersionPrefix.Length)
+					{
+						if (c == WhiteSpace)
+							i = -1;
+						else
+							sb.Append((char)c);
+					}
+					else if (c == prefix[i])
+						i++;
+					else
+						i = 0;
+				};
 			FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
 			return sb.ToString();
 		}

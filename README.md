@@ -2,7 +2,7 @@
 .NET wrapper for FFTW (http://www.fftw.org/)
 
 ## Installation
-Install NuGet package: https://www.nuget.org/packages/FFTW.NET/1.0.0
+Install NuGet package: https://www.nuget.org/packages/FFTW.NET
 or
 Download the FFTW binaries ("libfftw3-3.dll") from http://www.fftw.org/download.html,
 rename them to "libfftw3-3-x86.dll" and "libfftw3-3-x64.dll" and put them in your application directory.

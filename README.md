@@ -26,5 +26,5 @@ There are three array classes which you can use to perform transformations:
 * FftwArray<T>: This class allocates unmanaged memory using fftw_malloc.
   This class was somewhat rendered obsolete by the introduction of AlignedArray<T>.
 
-If none of these fits your needs, you can always create your own by
+If none of these fit your needs, you can always create your own by
 implementing the IPinnedArray<T> interface.

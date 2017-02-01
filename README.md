@@ -1,5 +1,5 @@
 # FFTW.NET
-.NET wrapper for FFTW (http://www.fftw.org/)
+C#/.NET wrapper for FFTW (http://www.fftw.org/)
 
 ## Installation
 Install NuGet package: https://www.nuget.org/packages/FFTW.NET
@@ -28,3 +28,8 @@ There are three array classes which you can use to perform transformations:
 
 If none of these fit your needs, you can always create your own by
 implementing the IPinnedArray<T> interface.
+
+## License
+FFTW is licensed under the GNU GPL, therefore FFTW.NET as a whole adapts this license.
+However, if for some reason you want to use classes/code from this project
+without using FFTW, you are free to do so under the Microsoft Reciprocal License (MS-RL).

@@ -113,7 +113,7 @@ namespace FFTW.NET
 			// We cannot use the fftw_export_wisdom_to_string function here
 			// because we have no way of releasing the returned memory.
 			StringBuilder sb = new StringBuilder();
-			FftwInterop.WriteCharHandler writeChar = (c, ptr) => sb.Append(Convert.ToChar(c));
+			FftwInterop.WriteCharHandler writeChar = (c, ptr) => sb.Append((char)c);
 			FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
 			return sb.ToString();
 		}
@@ -122,7 +122,7 @@ namespace FFTW.NET
 		{
 			const string VersionPrefix = "fftw-";
 			const byte WhiteSpace = (byte)' ';
-			byte[] prefix = Encoding.UTF8.GetBytes(VersionPrefix);
+			byte[] prefix = Encoding.ASCII.GetBytes(VersionPrefix);
 			int i = 0;
 			StringBuilder sb = new StringBuilder();
 			FftwInterop.WriteCharHandler writeChar = (c, ptr) =>
@@ -142,6 +142,7 @@ namespace FFTW.NET
 					else
 						i = 0;
 				};
+			// This is only called on initialization, so no synchronization/lock is required
 			FftwInterop.fftw_export_wisdom(writeChar, IntPtr.Zero);
 			return sb.ToString();
 		}

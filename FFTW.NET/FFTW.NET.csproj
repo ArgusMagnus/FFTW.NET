@@ -13,7 +13,7 @@
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/ArgusMagnus/FFTW.NET</RepositoryUrl>
     <PackageTags>FFTW FFTW.NET FFT</PackageTags>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.1.0</AssemblyVersion>
     <Version>1.0.1</Version>
     <PackageReleaseNotes>- Changed to .NETStandard library (1.3)

@@ -98,19 +98,23 @@ foreach (string import in Imports)
 	if (returnType == "void")
 	{
 // --------------------------------------------------------- Code End ----------------------------------------------------- #>
-			if (Utils.Is64BitProcess)
+			if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
 				<#=name#>_x64(<#=args#>);
-			else
+			else if (RuntimeInformation.ProcessArchitecture == Architecture.X86)
 				<#=name#>_x86(<#=args#>);
+			else
+				throw new PlatformNotSupportedException();
 <# // ------------------------------------------------------ Code Start ------------------------------------------------------
 	}
 	else
 	{
 // --------------------------------------------------------- Code End ----------------------------------------------------- #>
-			if (Utils.Is64BitProcess)
+			if (RuntimeInformation.ProcessArchitecture == Architecture.X64)
 				return <#=name#>_x64(<#=args#>);
-			else
+			else if (RuntimeInformation.ProcessArchitecture == Architecture.X86)
 				return <#=name#>_x86(<#=args#>);
+			else
+				throw new PlatformNotSupportedException();
 <# // ------------------------------------------------------ Code Start ------------------------------------------------------
 	}
 // --------------------------------------------------------- Code End ----------------------------------------------------- #>

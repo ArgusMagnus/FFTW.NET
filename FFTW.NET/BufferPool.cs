@@ -14,12 +14,12 @@ namespace FFTW.NET
 	public class BufferPool<T> where T : struct
 	{
 		readonly List<BufferItem> _buffers = new List<BufferItem>();
-		long _minSize;
+		int _minSize;
 
 		/// <summary>
 		/// Minimum size a buffer must have to be added to the pool.
 		/// </summary>
-		public long MinSizeToPool
+		public int MinSizeToPool
 		{
 			get { return _minSize; }
 			set
@@ -34,16 +34,16 @@ namespace FFTW.NET
 		/// Minimum size a buffer must have to be added to the pool.
 		/// </summary>
 		/// <param name="minSizeToPool"></param>
-		public BufferPool(long minSizeToPool = 0)
+		public BufferPool(int minSizeToPool = 0)
 		{
 			MinSizeToPool = minSizeToPool;
 		}
 
-		public Container RequestBuffer(long minSize) => Container.Get(this, minSize);
+		public Container RequestBuffer(int minSize) => Container.Get(this, minSize);
 
 		struct BufferItem
 		{
-			readonly long _size;
+			readonly int _size;
 			readonly WeakReference<T[]> _buffer;
 
 			public long Size => _size;
@@ -51,7 +51,7 @@ namespace FFTW.NET
 
 			internal BufferItem(T[] buffer)
 			{
-				_size = buffer.LongLength;
+				_size = buffer.Length;
 				_buffer = new WeakReference<T[]>(buffer);
 			}
 		}
@@ -69,7 +69,7 @@ namespace FFTW.NET
 				_bufferPool = bufferPool;
 			}
 
-			internal static Container Get(BufferPool<T> bufferPool, long minSize)
+			internal static Container Get(BufferPool<T> bufferPool, int minSize)
 			{
 				if (minSize < bufferPool.MinSizeToPool)
 					return new Container(bufferPool, new T[minSize]);
@@ -96,7 +96,7 @@ namespace FFTW.NET
 				if (_buffer == null)
 					return;
 
-				if (_buffer.LongLength < _bufferPool.MinSizeToPool)
+				if (_buffer.Length < _bufferPool.MinSizeToPool)
 				{
 					_buffer = null;
 					return;
@@ -106,7 +106,7 @@ namespace FFTW.NET
 				{
 					for (int i = 0; i < _bufferPool._buffers.Count; i++)
 					{
-						if (_buffer.LongLength >= _bufferPool._buffers[i].Size)
+						if (_buffer.Length >= _bufferPool._buffers[i].Size)
 						{
 							_bufferPool._buffers.Insert(i, new BufferItem(_buffer));
 							_buffer = null;

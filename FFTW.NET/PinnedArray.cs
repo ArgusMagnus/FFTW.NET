@@ -27,7 +27,6 @@ namespace FFTW.NET
 		public int Rank => _buffer.Rank;
 		public Array Buffer => _buffer;
 		public int Length => _buffer.Length;
-		public long LongLength => _buffer.LongLength;
 		public IntPtr Pointer => _pin.Pointer;
 		public bool IsDisposed => !_pin.IsAllocated;
 

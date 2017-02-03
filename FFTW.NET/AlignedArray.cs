@@ -19,11 +19,10 @@ namespace FFTW.NET
 		readonly PinnedGCHandle _pin;
 		readonly int _alignment;
 		readonly IntPtr _alignedPtr;
-		readonly long _length;
+		readonly int _length;
 		readonly int[] _lengths;
 
-		public long LongLength => _length;
-		public int Length => checked((int)_length);
+		public int Length => _length;
 		public bool IsDisposed => !_pin.IsAllocated;
 		public int Rank => _lengths.Length;
 
@@ -33,20 +32,18 @@ namespace FFTW.NET
 		{
 			_buffer = buffer;
 			_alignment = alignment;
-			_length = 1;
-			foreach (var n in lengths)
-				_length *= n;
+			_length = Utils.GetTotalSize(lengths);
 			_lengths = lengths;
 
-			if (_length > buffer.LongLength / Marshal.SizeOf<T>())
+			if (_length > buffer.Length / Marshal.SizeOf<T>())
 				throw new ArgumentException($"Buffer is to small to hold array of size {nameof(lengths)}", nameof(buffer));
 
 			_pin = PinnedGCHandle.Pin(buffer);
 
 			long value = _pin.Pointer.ToInt64();
-			long offset = alignment - (value % alignment);
+			int offset = alignment - (int)(value % alignment);
 			_alignedPtr = new IntPtr(value + offset);
-			long maxLength = (_buffer.LongLength - offset) / Marshal.SizeOf<T>();
+			int maxLength = (_buffer.Length - offset) / Marshal.SizeOf<T>();
 
 			if (_length > maxLength)
 			{

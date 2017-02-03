@@ -89,13 +89,13 @@ namespace FFTW.NET
 			}
 			else
 			{
-				using (var bufferContainer = _bufferPool.RequestBuffer(input.LongLength*Marshal.SizeOf<Complex>()+MemoryAlignment))
+				using (var bufferContainer = _bufferPool.RequestBuffer(input.Length * Marshal.SizeOf<Complex>() + MemoryAlignment))
 				using (var buffer = new AlignedArrayComplex(bufferContainer.Buffer, MemoryAlignment, input.GetSize()))
 				using (var plan = FftwPlanC2C.Create(buffer, buffer, input.Rank, input.GetSize(), direction, plannerFlags, nThreads))
 				{
 					input.CopyTo(plan.Input);
 					plan.Execute();
-					plan.Output.CopyTo(output, 0, 0, input.LongLength);
+					plan.Output.CopyTo(output, 0, 0, input.Length);
 				}
 			}
 		}
@@ -128,7 +128,7 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			using (var bufferContainer = _bufferPool.RequestBuffer(input.LongLength * sizeof(double) + MemoryAlignment))
+			using (var bufferContainer = _bufferPool.RequestBuffer(input.Length * sizeof(double) + MemoryAlignment))
 			using (var buffer = new AlignedArrayDouble(bufferContainer.Buffer, MemoryAlignment, input.GetSize()))
 			using (var plan = FftwPlanRC.Create(buffer, output, DftDirection.Forwards, plannerFlags, nThreads))
 			{
@@ -165,7 +165,7 @@ namespace FFTW.NET
 			/// If with <see cref="PlannerFlags.WisdomOnly"/> no plan can be created
 			/// and <see cref="PlannerFlags.Estimate"/> is not specified, we use
 			/// a different buffer to avoid overwriting the input
-			using (var bufferContainer = _bufferPool.RequestBuffer(input.LongLength * Marshal.SizeOf<Complex>() + MemoryAlignment))
+			using (var bufferContainer = _bufferPool.RequestBuffer(input.Length * Marshal.SizeOf<Complex>() + MemoryAlignment))
 			using (var buffer = new AlignedArrayComplex(bufferContainer.Buffer, MemoryAlignment, input.GetSize()))
 			using (var plan = FftwPlanRC.Create(output, buffer, DftDirection.Backwards, plannerFlags, nThreads))
 			{

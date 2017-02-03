@@ -98,7 +98,7 @@ foreach (string import in Imports)
 	if (returnType == "void")
 	{
 // --------------------------------------------------------- Code End ----------------------------------------------------- #>
-			if (Environment.Is64BitProcess)
+			if (Utils.Is64BitProcess)
 				<#=name#>_x64(<#=args#>);
 			else
 				<#=name#>_x86(<#=args#>);
@@ -107,7 +107,7 @@ foreach (string import in Imports)
 	else
 	{
 // --------------------------------------------------------- Code End ----------------------------------------------------- #>
-			if (Environment.Is64BitProcess)
+			if (Utils.Is64BitProcess)
 				return <#=name#>_x64(<#=args#>);
 			else
 				return <#=name#>_x86(<#=args#>);

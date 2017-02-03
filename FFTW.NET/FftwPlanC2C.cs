@@ -47,14 +47,12 @@ namespace FFTW.NET
 
 		protected override void VerifyMinSize(IPinnedArray<Complex> input, IPinnedArray<Complex> output, int[] n)
 		{
-			long size = 1;
-			foreach (var ni in n)
-				size *= ni;
+			int size = Utils.GetTotalSize(n);
 
-			if (input.LongLength < size)
+			if (input.Length < size)
 				throw new ArgumentException($"{nameof(input)} is too small.");
 
-			if (output.LongLength < size)
+			if (output.Length < size)
 				throw new ArgumentException($"{nameof(output)} is too small.");
 		}
 

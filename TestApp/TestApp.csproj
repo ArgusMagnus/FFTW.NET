@@ -50,7 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FFTW.NET\FFTW.NET.csproj">
-      <Project>{4503ac9c-f2e2-4e6b-8c34-01fc8f5ebc58}</Project>
+      <Project>{09d24cc5-7c95-44e4-8e08-fdb6a4aa002c}</Project>
       <Name>FFTW.NET</Name>
     </ProjectReference>
   </ItemGroup>

@@ -52,16 +52,20 @@ namespace FFTW.NET
 
 		protected override void VerifyMinSize(IPinnedArray<double> bufferReal, IPinnedArray<Complex> bufferComplex, int[] n)
 		{
-			long sizeReal = 1;
-			for (int i = 0; i < n.Length - 1; i++)
-				sizeReal *= n[i];
-			long sizeComplex = sizeReal * (n[n.Length - 1] / 2 + 1);
-			sizeReal *= n[n.Length - 1];
+			int sizeComplex;
+			int sizeReal = 1;
+			checked
+			{
+				for (int i = 0; i < n.Length - 1; i++)
+					sizeReal *= n[i];
+				sizeComplex = sizeReal * (n[n.Length - 1] / 2 + 1);
+				sizeReal *= n[n.Length - 1];
+			}
 
-			if (bufferReal.LongLength < sizeReal)
+			if (bufferReal.Length < sizeReal)
 				throw new ArgumentException($"{nameof(bufferReal)} is too small.");
 
-			if (bufferComplex.LongLength < sizeComplex)
+			if (bufferComplex.Length < sizeComplex)
 				throw new ArgumentException($"{nameof(bufferComplex)} is too small.");
 		}
 

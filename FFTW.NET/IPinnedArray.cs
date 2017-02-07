@@ -45,8 +45,8 @@ namespace FFTW.NET
 			int sizeOfT = Marshal.SizeOf<T>();
 			unsafe
 			{
-				void* pSrc = new IntPtr(src.Pointer.ToInt64() + srcIndex).ToPointer();
-				void* pDst = new IntPtr(dst.Pointer.ToInt64() + dstIndex).ToPointer();
+				void* pSrc = new IntPtr(src.Pointer.ToInt64() + srcIndex * sizeOfT).ToPointer();
+				void* pDst = new IntPtr(dst.Pointer.ToInt64() + dstIndex * sizeOfT).ToPointer();
 				System.Buffer.MemoryCopy(pSrc, pDst, (long)dst.Length * sizeOfT, (long)count * sizeOfT);
 			}
 		}

@@ -83,7 +83,7 @@ namespace FFTW.NET
 						if (item.Size >= minSize)
 						{
 							bufferPool._buffers.RemoveAt(i--);
-							if (bufferPool._buffers[i].Buffer.TryGetTarget(out buffer))
+							if (item.Buffer.TryGetTarget(out buffer))
 								break;
 						}
 					}

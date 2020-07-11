@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Authors>ArgusMagnus</Authors>
@@ -13,7 +13,7 @@
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/ArgusMagnus/FFTW.NET</RepositoryUrl>
     <PackageTags>FFTW FFTW.NET FFT</PackageTags>
-    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.1.0</AssemblyVersion>
     <Version>1.0.1</Version>
     <PackageReleaseNotes>- Changed to .NETStandard library (1.3)
